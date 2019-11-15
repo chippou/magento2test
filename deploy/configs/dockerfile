@@ -1,0 +1,14 @@
+FROM wyveo/nginx-php-fpm:php71
+
+COPY ./nginx-default.conf /etc/nginx/conf.d/default.conf
+RUN rm /var/log/nginx/*.log
+RUN apt-get update && apt-get install -y php7.1 php7.1-curl php7.1-intl php7.1-gd php7.1-dom php7.1-mcrypt php7.1-iconv php7.1-xsl php7.1-mbstring php7.1-ctype   php7.1-zip php7.1-pdo php7.1-xml php7.1-bz2 php7.1-calendar php7.1-exif php7.1-fileinfo php7.1-json php7.1-mysqli php7.1-mysql php7.1-posix php7.1-tokenizer php7.1-xmlwriter php7.1-xmlreader php7.1-phar php7.1-soap php7.1-mysql php7.1-fpm php7.1-bcmath libapache2-mod-php7.1 net-tools cron
+
+RUN echo "* * * * * /usr/bin/php -q /usr/share/nginx/html/apps/console/console.php send-campaigns >/dev/null 2>&1" >> mwcron && \
+ echo "*/2 * * * * /usr/bin/php -q /usr/share/nginx/html/apps/console/console.php send-transactional-emails >/dev/null 2>&1" >> mwcron && \
+ echo "*/10 * * * * /usr/bin/php -q /usr/share/nginx/html/apps/console/console.php bounce-handler >/dev/null 2>&1" >> mwcron \
+ echo "*/20 * * * * /usr/bin/php -q /usr/share/nginx/html/apps/console/console.php feedback-loop-handler >/dev/null 2>&1" >> mwcron \
+ echo "*/3 * * * * /usr/bin/php -q /usr/share/nginx/html/apps/console/console.php process-delivery-and-bounce-log >/dev/null 2>&1" >> mwcron \
+ echo "0 * * * * /usr/bin/php -q /usr/share/nginx/html/apps/console/console.php hourly >/dev/null 2>&1" >> mwcron \
+ echo "0 0 * * * /usr/bin/php -q /usr/share/nginx/html/apps/console/console.php daily >/dev/null 2>&1" >> mwcron \
+ crontab mwcron
